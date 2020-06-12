@@ -52,7 +52,8 @@ class TicTacToe:
 
 game = TicTacToe()
 try:
-    game.set_state("O_OXXO_XX")
+    game.set_state(input())
 except wrongStringInputException:
     print("Wrong string passed")
 game.print_state()
+
