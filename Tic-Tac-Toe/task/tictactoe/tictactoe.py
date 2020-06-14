@@ -33,6 +33,12 @@ class CellAlreadyFilledException(Exception):
     def __init__(self):
         print("This cell is occupied! Choose another one!")
 
+def switch_player(player):
+    if player == "X":
+        return "O"
+    elif player == "O":
+        return "X"
+
 
 class TicTacToe:
     def __init__(self):
@@ -68,18 +74,26 @@ class TicTacToe:
         }
         winner_x = False
         winner_o = False
-
+        cnt_x = []
+        cnt_o = []
+        cnt_blnk = 0
         for i in winning_dict.keys():
-            cnt_x = [self.feild[int(x.split(",")[0])][int(x.split(",")[1])] for x in winning_dict[i].split(":")].count(
-                "X")
-            cnt_o = [self.feild[int(x.split(",")[0])][int(x.split(",")[1])] for x in winning_dict[i].split(":")].count(
-                "O")
+            all_elemnts = [self.feild[int(x.split(",")[0])][int(x.split(",")[1])] for x in winning_dict[i].split(":")]
+            # cnt_x = [self.feild[int(x.split(",")[0])][int(x.split(",")[1])] for x in winning_dict[i].split(":")].count(
+            #     "X")
+            cnt_x = all_elemnts.count("X")
+            # cnt_o = [self.feild[int(x.split(",")[0])][int(x.split(",")[1])] for x in winning_dict[i].split(":")].count(
+            #     "O")
+            cnt_o = all_elemnts.count("O")
+            # cnt_blnk = [self.feild[int(x.split(",")[0])][int(x.split(",")[1])] for x in winning_dict[i].split(":")].count(
+            #     " ")
+            cnt_blnk = cnt_blnk + all_elemnts.count(" ")
             if cnt_x == 3:
                 winner_x = True
             elif cnt_o == 3:
                 winner_o = True
 
-        blank_cnt = self.raw_string.count("_")
+        blank_cnt = cnt_blnk
 
         if abs(self.raw_string.count("X") - self.raw_string.count("O")) >= 2:
             return "Impossible"
@@ -112,7 +126,7 @@ class TicTacToe:
         # print("starting function")
         x = coordinates.split(" ")
         # print(x, y)
-        if re.match(r"[0-9]+", x[0]) is None or re.match(r"[0-9]", x[1]) is None:
+        if re.match(r"^[0-9]+$", x[0]) is None or re.match(r"^[0-9]+$", x[1]) is None:
             raise NonIntCoordinatesException
             # return False
         if not 1 <= int(x[0]) <= 3 or not 1 <= int(x[1]) <= 3:
@@ -132,29 +146,40 @@ class TicTacToe:
         }
         x, y = coordinate_dict[coordinates].split(",")
         # print(self.feild[int(x)][int(y)])
-        if self.feild[int(x)][int(y)] != "_":
+        if self.feild[int(x)][int(y)] != " ":
             raise CellAlreadyFilledException
         else:
             self.feild[int(x)][int(y)] = symbol
 
-player_symbol = "X"
+    def have_empty_space(self):
+        return any([" " in i for i in self.feild])
+
+
 game = TicTacToe()
-try:
-    game.set_state(input())
-except wrongStringInputException:
-    print("Wrong string passed")
+result = None
+# try:
+#     game.set_state(input())
+# except wrongStringInputException:
+#     print("Wrong string passed")
 game.print_state()
 # print(game.find_result())
-restart_loop = True
-while restart_loop is True:
-    coordinates = input("Enter the coordinates: ")
-    try:
-        game.validate_n_set_coordinates(coordinates, player_symbol)
-    except OutOfBoundCoordinatesException:
-        continue
-    except NonIntCoordinatesException:
-        continue
-    except CellAlreadyFilledException:
-        continue
-    restart_loop = False
-game.print_state()
+player_symbol = "X"
+while game.have_empty_space() and result is None:
+    restart_loop = True
+    while restart_loop is True:
+        coordinates = input("Enter the coordinates: ")
+        try:
+            game.validate_n_set_coordinates(coordinates, player_symbol)
+        except OutOfBoundCoordinatesException:
+            continue
+        except NonIntCoordinatesException:
+            continue
+        except CellAlreadyFilledException:
+            continue
+        restart_loop = False
+    game.print_state()
+    mid_result = game.find_result()
+    if mid_result in ["X wins", "O wins", "Draw"]:
+        result = mid_result
+        print(result)
+    player_symbol = switch_player(player_symbol)
